@@ -1,5 +1,6 @@
 require 'spec_helper'
-require 'fog'
+require 'fog/aws'
+require 'fog/local'
 require 'timecop'
 
 describe Paperclip::Storage::Fog do
@@ -320,6 +321,9 @@ describe Paperclip::Storage::Fog do
         it "honors the scheme in public url" do
           assert_match(/^http:\/\//, @dummy.avatar.url)
         end
+        it "honors the scheme in expiring url" do
+          assert_match(/^http:\/\//, @dummy.avatar.expiring_url)
+        end
       end
 
       context "with scheme not set" do
@@ -334,15 +338,20 @@ describe Paperclip::Storage::Fog do
         it "provides HTTPS public url" do
           assert_match(/^https:\/\//, @dummy.avatar.url)
         end
+        it "provides HTTPS expiring url" do
+          assert_match(/^https:\/\//, @dummy.avatar.expiring_url)
+        end
       end
 
       context "with a valid bucket name for a subdomain" do
+        before { @dummy.stubs(:new_record?).returns(false) }
+
         it "provides an url in subdomain style" do
           assert_match(/^https:\/\/papercliptests.s3.amazonaws.com\/avatars\/5k.png/, @dummy.avatar.url)
         end
 
         it "provides an url that expires in subdomain style" do
-          assert_match(/^http:\/\/papercliptests.s3.amazonaws.com\/avatars\/5k.png.+Expires=.+$/, @dummy.avatar.expiring_url)
+          assert_match(/^https:\/\/papercliptests.s3.amazonaws.com\/avatars\/5k.png.+Expires=.+$/, @dummy.avatar.expiring_url)
         end
       end
 
@@ -390,7 +399,7 @@ describe Paperclip::Storage::Fog do
         end
 
         it "provides a url that expires in folder style" do
-          assert_match(/^http:\/\/s3.amazonaws.com\/this_is_invalid\/avatars\/5k.png.+Expires=.+$/, @dummy.avatar.expiring_url)
+          assert_match(/^https:\/\/s3.amazonaws.com\/this_is_invalid\/avatars\/5k.png.+Expires=.+$/, @dummy.avatar.expiring_url)
         end
 
       end
@@ -492,6 +501,7 @@ describe Paperclip::Storage::Fog do
       @file = File.new(fixture_file('5k.png'), 'rb')
       @dummy = Dummy.new
       @dummy.avatar = @file
+      @dummy.stubs(:new_record?).returns(false)
     end
 
     after do

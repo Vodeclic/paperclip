@@ -20,7 +20,7 @@ describe Paperclip do
     it "saves Cocaine::CommandLine.path that set before" do
       Cocaine::CommandLine.path = "/opt/my_app/bin"
       Paperclip.run("convert", "stuff")
-      assert_equal Cocaine::CommandLine.path.include?("/opt/my_app/bin"), true
+      expect(Cocaine::CommandLine.path).to match("/opt/my_app/bin")
     end
 
     it "does not duplicate Cocaine::CommandLine.path on multiple runs" do
@@ -119,33 +119,6 @@ describe Paperclip do
       assert_nothing_raised do
         Dummy.class_eval do
           has_attached_file :blah
-        end
-      end
-    end
-
-    if using_protected_attributes?
-      context "that is attr_protected" do
-        before do
-          Dummy.class_eval do
-            attr_protected :avatar
-          end
-          @dummy = Dummy.new
-        end
-
-        it "does not assign the avatar on mass-set" do
-          @dummy.attributes = { other: "I'm set!",
-                                avatar: @file }
-
-          assert_equal "I'm set!", @dummy.other
-          assert ! @dummy.avatar?
-        end
-
-        it "allows assigment on normal set" do
-          @dummy.other  = "I'm set!"
-          @dummy.avatar = @file
-
-          assert_equal "I'm set!", @dummy.other
-          assert @dummy.avatar?
         end
       end
     end
